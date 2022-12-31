@@ -1,0 +1,65 @@
+-- MySQL dump 10.19  Distrib 10.3.37-MariaDB, for debian-linux-gnu (x86_64)
+--
+-- Host: 127.0.0.1    Database: poc_webapp
+-- ------------------------------------------------------
+-- Server version	10.3.37-MariaDB-0ubuntu0.20.04.1-log
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Dumping data for table `memo_tag_tagging`
+--
+
+LOCK TABLES `memo_tag_tagging` WRITE;
+/*!40000 ALTER TABLE `memo_tag_tagging` DISABLE KEYS */;
+INSERT INTO `memo_tag_tagging` VALUES (1,1),(1,2),(1,3),(2,4),(2,5);
+/*!40000 ALTER TABLE `memo_tag_tagging` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Dumping data for table `memos`
+--
+
+LOCK TABLES `memos` WRITE;
+/*!40000 ALTER TABLE `memos` DISABLE KEYS */;
+INSERT INTO `memos` VALUES (1,1,'沖縄ダイビング','2022/8/15 水納島','2022-12-31 13:50:29.627822','2022-12-31 13:50:29.627822'),(2,1,'フィリピンダイビング','2020/5/3 パラワン島','2022-12-31 13:50:29.627822','2022-12-31 13:50:29.627822'),(3,2,'伊豆ダイビング','2022/8/10 熱海','2022-12-31 13:50:29.627822','2022-12-31 13:50:29.627822');
+/*!40000 ALTER TABLE `memos` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Dumping data for table `tags`
+--
+
+LOCK TABLES `tags` WRITE;
+/*!40000 ALTER TABLE `tags` DISABLE KEYS */;
+INSERT INTO `tags` VALUES (1,'参加者','岩佐'),(2,'参加者','高田'),(3,'写真','url:here'),(4,'参加者','武知'),(5,'写真','url:here');
+/*!40000 ALTER TABLE `tags` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Dumping data for table `users`
+--
+
+LOCK TABLES `users` WRITE;
+/*!40000 ALTER TABLE `users` DISABLE KEYS */;
+INSERT INTO `users` VALUES (1,'kiwasa','test_pass1','2022-12-31 13:50:00.589715','2022-12-31 13:50:00.589715'),(2,'hide_take','test_pass2','2022-12-31 13:50:00.589715','2022-12-31 13:50:00.589715');
+/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2022-12-31 14:54:05
