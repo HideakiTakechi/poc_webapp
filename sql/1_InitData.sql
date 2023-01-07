@@ -15,43 +15,61 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Dumping data for table `memo_tag_tagging`
+-- Dumping data for table `accounts`
 --
 
-LOCK TABLES `memo_tag_tagging` WRITE;
-/*!40000 ALTER TABLE `memo_tag_tagging` DISABLE KEYS */;
-INSERT INTO `memo_tag_tagging` VALUES (1,1),(1,2),(1,3),(2,4),(2,5);
-/*!40000 ALTER TABLE `memo_tag_tagging` ENABLE KEYS */;
+LOCK TABLES `accounts` WRITE;
+/*!40000 ALTER TABLE `accounts` DISABLE KEYS */;
+INSERT INTO `accounts` VALUES (1,'kiwasa','test_pass1','kiwasa@test.com','2023-01-07 19:00:09.492220','2023-01-07 19:00:09.492220'),(2,'hide_take','test_pass2','hide_take@test.com','2023-01-07 19:00:09.492220','2023-01-07 19:00:09.492220');
+/*!40000 ALTER TABLE `accounts` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Dumping data for table `memos`
+-- Dumping data for table `event_image_tagging`
 --
 
-LOCK TABLES `memos` WRITE;
-/*!40000 ALTER TABLE `memos` DISABLE KEYS */;
-INSERT INTO `memos` VALUES (1,1,'沖縄ダイビング','2022/8/15 水納島','2022-12-31 13:50:29.627822','2022-12-31 13:50:29.627822'),(2,1,'フィリピンダイビング','2020/5/3 パラワン島','2022-12-31 13:50:29.627822','2022-12-31 13:50:29.627822'),(3,2,'伊豆ダイビング','2022/8/10 熱海','2022-12-31 13:50:29.627822','2022-12-31 13:50:29.627822');
-/*!40000 ALTER TABLE `memos` ENABLE KEYS */;
+LOCK TABLES `event_image_tagging` WRITE;
+/*!40000 ALTER TABLE `event_image_tagging` DISABLE KEYS */;
+/*!40000 ALTER TABLE `event_image_tagging` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Dumping data for table `tags`
+-- Dumping data for table `event_person_tagging`
 --
 
-LOCK TABLES `tags` WRITE;
-/*!40000 ALTER TABLE `tags` DISABLE KEYS */;
-INSERT INTO `tags` VALUES (1,'参加者','岩佐'),(2,'参加者','高田'),(3,'写真','url:here'),(4,'参加者','武知'),(5,'写真','url:here');
-/*!40000 ALTER TABLE `tags` ENABLE KEYS */;
+LOCK TABLES `event_person_tagging` WRITE;
+/*!40000 ALTER TABLE `event_person_tagging` DISABLE KEYS */;
+INSERT INTO `event_person_tagging` VALUES (1,1),(1,1),(1,2),(2,1),(2,3);
+/*!40000 ALTER TABLE `event_person_tagging` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Dumping data for table `users`
+-- Dumping data for table `events`
 --
 
-LOCK TABLES `users` WRITE;
-/*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'kiwasa','test_pass1','2022-12-31 13:50:00.589715','2022-12-31 13:50:00.589715'),(2,'hide_take','test_pass2','2022-12-31 13:50:00.589715','2022-12-31 13:50:00.589715');
-/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+LOCK TABLES `events` WRITE;
+/*!40000 ALTER TABLE `events` DISABLE KEYS */;
+INSERT INTO `events` VALUES (1,1,'沖縄ダイビング','水納島','2022-08-15 00:00:00.000000'),(2,1,'フィリピンダイビング','パラワン島','2020-05-03 00:00:00.000000'),(3,2,'伊豆ダイビング','熱海','2022-08-10 00:00:00.000000');
+/*!40000 ALTER TABLE `events` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Dumping data for table `images`
+--
+
+LOCK TABLES `images` WRITE;
+/*!40000 ALTER TABLE `images` DISABLE KEYS */;
+/*!40000 ALTER TABLE `images` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Dumping data for table `persons`
+--
+
+LOCK TABLES `persons` WRITE;
+/*!40000 ALTER TABLE `persons` DISABLE KEYS */;
+INSERT INTO `persons` VALUES (1,'岩佐',''),(2,'高田',''),(3,'武知','');
+/*!40000 ALTER TABLE `persons` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -62,4 +80,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-12-31 14:54:05
+-- Dump completed on 2023-01-07 19:08:55

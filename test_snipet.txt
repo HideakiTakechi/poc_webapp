@@ -1,0 +1,4 @@
+curl localhost:1323/api/events
+curl localhost:1323/api/events/2
+curl -X POST -H "Content-Type: application/json" localhost:1323/api/events -d '{"title": "追加ダイビング","description": "伊豆大島","event_date": "2022-08-15T00:00:00+09:00"}'
+curl -X DELETE localhost:1323/api/events/9
