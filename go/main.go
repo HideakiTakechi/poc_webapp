@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"io"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
@@ -17,6 +18,7 @@ import (
 
 const (
 	frontendContentsPath = "../public"
+	imagesPath = "../public/images"
 	mysqlErrNumDuplicateEntry   = 1062
 )
 
@@ -99,18 +101,20 @@ func main() {
 	e.Use(middleware.Recover())
 
 	// Routes
-	e.GET("/", getIndex)
-	e.GET("/home", getIndex)
-
 	e.GET("/api/test", hello)
 	e.GET("/api/accounts", accounts)
 
-	e.GET("/api/events", getEventList)
+	e.GET("/api/events/:event_id", getEvent)
 	e.POST("/api/events", postEvent)
 	e.DELETE("/api/events/:event_id", deleteEvent)
-	e.GET("/api/events/:event_id", getEvent)
+	e.GET("/api/events", getEventList)
 
+	e.POST("/api/upload/img", upload)
+
+	e.GET("/", getIndex)
+	e.GET("/home", getIndex)
 	e.Static("/assets", frontendContentsPath+"/assets")
+	e.Static("/images", imagesPath)
 
 	mySQLConnectionData = NewMySQLConnectionEnv()
 
@@ -285,6 +289,69 @@ func deleteEvent(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusCreated, "deleted")
+}
+
+func upload(c echo.Context) error {
+	file, err := c.FormFile("file")
+	if err != nil {
+		return c.String(http.StatusBadRequest, "file missing")
+	}
+
+	image_name := file.Filename
+	mime_type := file.Header.Get("Content-Type")
+	size := file.Size
+	if size > 1000000 {
+		return c.String(http.StatusBadRequest, "file exceed 1MByte")
+	}
+	src, err := file.Open()
+
+	tx, err := db.Beginx()
+	if err != nil {
+		c.Logger().Errorf("db error: %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec("INSERT INTO `images` (`image_id`, `image_name`, `mime_type`) VALUES (default, ?, ?)", image_name, mime_type)
+	if err != nil {
+		mysqlErr, ok := err.(*mysql.MySQLError)
+
+		if ok && mysqlErr.Number == uint16(mysqlErrNumDuplicateEntry) {
+			return c.String(http.StatusConflict, "duplicated: image")
+		}
+
+		c.Logger().Errorf("db error: %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	var image_id int
+	err = tx.Get(&image_id,"SELECT LAST_INSERT_ID()")
+	if err != nil {
+		c.Logger().Errorf("db error: %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	fmt.Println(image_id)
+
+    // サーバー側に保存するために空ファイルを作成
+	dst_file_name := imagesPath + fmt.Sprintf("/%d.png", image_id)
+    dst, err := os.Create(dst_file_name);
+    if err != nil {
+		c.Logger().Errorf("cant open file: %v", dst_file_name)
+		return c.NoContent(http.StatusInternalServerError)
+    }
+    defer dst.Close();
+	if _, err = io.Copy(dst, src); err != nil {
+		c.Logger().Errorf("cant save file: %v", dst_file_name)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		c.Logger().Errorf("db error: %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	return c.String(http.StatusOK, "uploading!")
 }
 
 func getIndex(c echo.Context) error {
