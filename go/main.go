@@ -104,12 +104,18 @@ func main() {
 	e.GET("/api/test", hello)
 	e.GET("/api/accounts", accounts)
 
+	e.GET("/api/events", getEventList)
 	e.GET("/api/events/:event_id", getEvent)
 	e.POST("/api/events", postEvent)
 	e.DELETE("/api/events/:event_id", deleteEvent)
-	e.GET("/api/events", getEventList)
 
-	e.POST("/api/upload/img", upload)
+	e.GET("/api/persons", getPersonList)
+//	e.GET("/api/persons/:person_id", getPerson)
+//	e.POST("/api/persons", postPerson)
+//	e.DELETE("/api/persons/:person_id", deletePerson)
+
+	e.POST("/api/images", uploadImage)
+//	e.DELETE("/api/images/:image_id", deleteImage)
 
 	e.GET("/", getIndex)
 	e.GET("/home", getIndex)
@@ -157,7 +163,15 @@ func accounts(c echo.Context) error {
 // GET api/events/
 // イベントリストの取得
 func getEventList(c echo.Context) error {
-	rows, err := db.Queryx(`select event_id, title, description, event_date from events`)
+	limit := c.QueryParam("limit")
+	if limit != "" {
+		limit = fmt.Sprintf(" limit "+limit)
+	}
+	offset := c.QueryParam("offset")
+	if offset != "" {
+		offset = fmt.Sprintf(" offset "+offset)
+	}
+	rows, err := db.Queryx(`select event_id, title, description, event_date from events` + limit + offset)
 	if err != nil {
 		c.Logger().Errorf("failed to query: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -218,17 +232,12 @@ func getEvent(c echo.Context) error {
 // Eventを登録
 func postEvent(c echo.Context) error {
 	event := new(NewEvent)
-//	var event NewEvent
 	if err := c.Bind(event);err != nil {
 		// error handling
 	}
 	title:= event.Title
 	description:=event.Description
 	eventDate:=event.EventDate
-
-//	title:= c.FormValue("Title")
-//	description := c.FormValue("Description")
-//	eventDate := c.FormValue("EventDate")
 	c.Logger().Errorf("info: %v", event)
 
 	tx, err := db.Beginx()
@@ -258,14 +267,13 @@ func postEvent(c echo.Context) error {
 		c.Logger().Errorf("db error: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
-
 	err = tx.Commit()
 	if err != nil {
 		c.Logger().Errorf("db error: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
-
-	return c.JSON(http.StatusCreated, id)
+	ret := map[string]int{"EventID": id}
+	return c.JSON(http.StatusCreated, ret)
 }
 // DELETE api/events/{event_id}
 // イベントの削除（※まずは単純削除：ToDo タグなどのBindの掃除）
@@ -288,10 +296,37 @@ func deleteEvent(c echo.Context) error {
 		c.Logger().Errorf("db error: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
-	return c.JSON(http.StatusCreated, "deleted")
+    return c.NoContent(http.StatusNoContent)
 }
 
-func upload(c echo.Context) error {
+func getPersonList(c echo.Context) error {
+	limit := c.QueryParam("limit")
+	if limit != "" {
+		limit = fmt.Sprintf(" limit "+limit)
+	}
+	offset := c.QueryParam("offset")
+	if offset != "" {
+		offset = fmt.Sprintf(" offset "+offset)
+	}
+	rows, err := db.Queryx("select * from persons" + limit + offset)
+	if err != nil {
+		c.Logger().Errorf("failed to query: %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	var person Person
+	var personlist Personlist
+	for rows.Next() {
+		err := rows.StructScan(&person) //sqlのrows.Scanの代わりにsqlxのrows.StructScanを使う
+		if err != nil {
+			c.Logger().Errorf("failed to purse query responce: %v", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		personlist = append(personlist, person)
+	}
+	return c.JSON(http.StatusOK, personlist)
+}
+
+func uploadImage(c echo.Context) error {
 	file, err := c.FormFile("file")
 	if err != nil {
 		return c.String(http.StatusBadRequest, "file missing")
