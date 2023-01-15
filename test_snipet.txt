@@ -1,4 +1,29 @@
+# Enevts
 curl localhost:1323/api/events
+curl localhost:1323/api/events?limit=2\&offset=1
 curl localhost:1323/api/events/2
 curl -X POST -H "Content-Type: application/json" localhost:1323/api/events -d '{"title": "追加ダイビング","description": "伊豆大島","event_date": "2022-08-15T00:00:00+09:00"}'
-curl -X DELETE localhost:1323/api/events/9
+curl -X DELETE localhost:1323/api/events/4
+
+# Persons
+curl localhost:1323/api/persons
+curl localhost:1323/api/persons?limit=2\&offset=1
+curl localhost:1323/api/persons/2
+curl -X POST -H "Content-Type: application/json" localhost:1323/api/persons -d '{"first_name": "黒田","last_name": ""}'
+curl -X DELETE localhost:1323/api/persons/5
+
+# Images
+curl localhost:1323/api/images
+curl localhost:1323/api/images?limit=2\&offset=1
+curl localhost:1323/api/images/16
+curl localhost:1323/images/16.png -o 16.png
+curl -X POST -F file=@htmlicon.png localhost:1323/api/images
+curl -X DELETE localhost:1323/api/images/17
+
+# Bind to Event
+curl -X POST -H "Content-Type: application/json" localhost:1323/api/events/3/persons -d '[{"person_id": 4}]'
+curl -X POST -H "Content-Type: application/json" localhost:1323/api/events/4/persons -d '[{"person_id": 4},{"person_id": 5}]'
+
+# Static resources
+curl localhost:1323/
+
