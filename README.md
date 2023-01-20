@@ -18,8 +18,8 @@
 |GET /api/images/{image_id}|✓画像情報の取得(画像本体はURLより取得)|
 |POST /api/images|✓画像のアップロード(内容をフォームで送信しidを自動発番)|
 |DELETE  /api/images/{image_id}|✓画像の削除※ToDo:バインド掃除|
-|POST /api/events/{event_id}/persons|イベントへ参加者リストを追加|
-|POST /api/events/{event_id}/images|イベントへ画像リスト追加|  
+|POST /api/events/{event_id}/persons|✓イベントへ参加者リストを追加|
+|POST /api/events/{event_id}/images|✓イベントへ画像リスト追加|  
 ※アップロードされた画像は画像URLから取得できる
 
 |ホスト|プロトコル|データ形式|
@@ -112,14 +112,22 @@ HTTP/1.1 200 OK
   },
   "persons": [
     {
-      "PersonId": 1,
-      "FirstName": "岩佐",
-      "LastName": ""
+      "person_id": 1,
+      "first_name": "岩佐",
+      "last_name": ""
     },
     {
-      "PersonId": 3,
-      "FirstName": "武知",
-      "LastName": ""
+      "person_id": 3,
+      "first_name": "武知",
+      "last_name": ""
+    }
+  ],
+  "images": [
+    {
+      "ImagePath": "/images/4.png",
+      "image_id": 4,
+      "image_name": "test-image",
+      "content_type": "image/png"
     }
   ]
 }
@@ -446,4 +454,77 @@ HTTP/1.1 204 No Content
 
 ```
 $ curl -X DELETE localhost:1323/api/images/17
+```
+
+## イベントへ参加者を追加 [POST]
+イベントへ参加者リストを追加
+```
+POST /api/events/{event_id}/persons
+```
+
+### Request
+
+| パラメータ | 内容 | 必須 | デフォルト値 | 最大値 |
+|  ---  |  ---  |  ---  |  ---  |  ---  |
+|event_id|追加する先||||
+|person_id|追加する対象の配列||||
+```
+[
+  {
+    "person_id": 4
+  },
+  {
+    "person_id": 7
+  }
+]
+```
+
+### Response
+
+```
+HTTP/1.1 204 No Content
+```
+
+### Test
+
+```
+$ curl -X POST -H "Content-Type: application/json" localhost:1323/api/events/3/persons -d '[{"person_id": 4}]'
+$ curl -X POST -H "Content-Type: application/json" localhost:1323/api/events/4/persons -d '[{"person_id": 4},{"person_id": 5}]'
+```
+
+## イベントへ画像を追加 [POST]
+イベントへ画像リストを追加
+```
+POST /api/events/{event_id}/images
+```
+
+### Request
+
+| パラメータ | 内容 | 必須 | デフォルト値 | 最大値 |
+|  ---  |  ---  |  ---  |  ---  |  ---  |
+|event_id|追加する先||||
+|image_id|追加する対象の配列||||
+
+```
+[
+  {
+    "image_id": 4
+  },
+  {
+    "image_id": 5
+  }
+]
+```
+
+### Response
+
+```
+HTTP/1.1 204 No Content
+```
+
+### Test
+
+```
+curl -X POST -H "Content-Type: application/json" localhost:1323/api/events/7/images -d '[{"image_id": 4}]'
+curl -X POST -H "Content-Type: application/json" localhost:1323/api/events/7/images -d '[{"image_id": 4},{"image_id": 5}]'
 ```

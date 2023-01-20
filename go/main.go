@@ -53,7 +53,8 @@ type Eventlist []Event
 type EventDatail struct {
 	Event   *Event      `json:"event"`
 	Persons *Personlist `json:"persons"`
-}
+	ImageAndPaths *ImageAndPathlist `json:"images"`}
+
 type NewEvent struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
@@ -75,6 +76,7 @@ type ImageAndPath struct {
 	ImagePath string
 	Image
 }
+type ImageAndPathlist []ImageAndPath
 
 func getEnv(key string, defaultValue string) string {
 	val := os.Getenv(key)
@@ -130,7 +132,7 @@ func main() {
 	e.DELETE("/api/images/:image_id", deleteImage)
 
 	e.POST("/api/events/:event_id/persons", bindEventPersons)
-//	e.POST("/api/events/:event_id/images", bindEventImages)
+	e.POST("/api/events/:event_id/images", bindEventImages)
 
 	// Static Resource Routes
 	e.GET("/", getIndex)
@@ -234,7 +236,7 @@ func getEvent(c echo.Context) error {
 	var person Person
 	var personlist Personlist
 	for rows.Next() {
-		err := rows.StructScan(&person) //sqlのrows.Scanの代わりにsqlxのrows.StructScanを使う
+		err := rows.StructScan(&person)
 		if err != nil {
 			c.Logger().Errorf("failed to purse query responce: %v", err)
 			return c.NoContent(http.StatusInternalServerError)
@@ -242,10 +244,30 @@ func getEvent(c echo.Context) error {
 		personlist = append(personlist, person)
 	}
 
+	rows, err = db.Queryx("select * from images where image_id in (select distinct(image_id) from event_image_tagging where event_id =?);", eventID)
+	if err != nil {
+		c.Logger().Errorf("failed to query: %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	var imageAndPathlist ImageAndPathlist
+	var imageAndPath ImageAndPath
+	var image Image
+	for rows.Next() {
+		err := rows.StructScan(&image)
+		if err != nil {
+			c.Logger().Errorf("failed to purse query responce: %v", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		imageAndPath.Image = image
+		imageAndPath.ImagePath = fmt.Sprintf("/images/%d.png",image.ImageId)
+		imageAndPathlist = append(imageAndPathlist, imageAndPath)
+	}
+
 	var res EventDatail
 	res = EventDatail{
 		Event:   &event,
 		Persons: &personlist,
+		ImageAndPaths: &imageAndPathlist,
 	}
 
 	return c.JSON(http.StatusOK, res)
@@ -583,12 +605,78 @@ func bindEventPersons(c echo.Context) error {
 	eventID := c.Param("event_id")
 	c.Logger().Errorf("info: enevt_id %v", eventID)
 	// bodyのjson情報を取得
-	var personList Personlist
+	var personList []Person
 	if err := c.Bind(&personList); err != nil {
 		c.Logger().Errorf("Bind error: %v", err)
 	}
 
-// ToDo: 人数分ループして交差テーブルを生成すること
-
-	return c.JSON(http.StatusCreated, personList)
+	// 人数分ループしてDBに交差テーブル行を追加
+	tx, err := db.Beginx()
+	if err != nil {
+		c.Logger().Errorf("db error: %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	defer tx.Rollback()
+	var personID int
+	for _, person := range personList {
+		personID = person.PersonId
+		_, err = tx.Exec("INSERT INTO `event_person_tagging` (`event_id`, `person_id`) VALUES (?, ?)", eventID, personID)
+		if err != nil {
+			mysqlErr, ok := err.(*mysql.MySQLError)
+			if ok && mysqlErr.Number == uint16(mysqlErrNumDuplicateEntry) {
+				return c.String(http.StatusConflict, "duplicated: bind")
+			}
+			c.Logger().Errorf("db error: %v", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+	}
+	// COMMIT
+	err = tx.Commit()
+	if err != nil {
+		c.Logger().Errorf("db error: %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
 }
+
+// POST /api/events/{event_id}/images
+// イベントへ画像リスト追加 (イベント/画像とも存在すること)
+func bindEventImages(c echo.Context) error {
+	// パスパラメタからeventIDを取得
+	eventID := c.Param("event_id")
+	c.Logger().Errorf("info: enevt_id %v", eventID)
+	// bodyのjson情報を取得
+	var imageList []Image
+	if err := c.Bind(&imageList); err != nil {
+		c.Logger().Errorf("Bind error: %v", err)
+	}
+	// 画像数分ループしてDBに交差テーブル行を追加
+	tx, err := db.Beginx()
+	if err != nil {
+		c.Logger().Errorf("db error: %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	defer tx.Rollback()
+	var imageID int
+	for _, image := range imageList {
+		imageID = image.ImageId
+		fmt.Printf(" -> image %d\n", imageID)
+		_, err = tx.Exec("INSERT INTO `event_image_tagging` (`event_id`, `image_id`) VALUES (?, ?)", eventID, imageID)
+		if err != nil {
+			mysqlErr, ok := err.(*mysql.MySQLError)
+			if ok && mysqlErr.Number == uint16(mysqlErrNumDuplicateEntry) {
+				return c.String(http.StatusConflict, "duplicated: bind")
+			}
+			c.Logger().Errorf("db error: %v", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+	}
+	// COMMIT
+	err = tx.Commit()
+	if err != nil {
+		c.Logger().Errorf("db error: %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
